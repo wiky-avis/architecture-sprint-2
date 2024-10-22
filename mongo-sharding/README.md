@@ -2,15 +2,14 @@
 
 ## Как запустить
 
-Запуск
+Старт всех контейнеров
 ```shell
 docker compose up -d
 ```
 Подключитесь к серверу конфигурации и сделайте инициализацию:
 ```bash
-docker exec -it configSrv mongosh --port 27017
-
-> rs.initiate(
+docker compose exec -T configSrv mongosh --port 27017 --quiet <<EOF
+rs.initiate(
   {
     _id : "config_server",
        configsvr: true,
@@ -18,14 +17,13 @@ docker exec -it configSrv mongosh --port 27017
       { _id : 0, host : "configSrv:27017" }
     ]
   }
-);
-> exit();
+)
+EOF
 ```
 Инициализируйте шарды:
 ```bash
-docker exec -it shard1 mongosh --port 27018
-
-> rs.initiate(
+docker compose exec -T shard1 mongosh --port 27018 --quiet <<EOF
+rs.initiate(
     {
       _id : "shard1",
       members: [
@@ -33,12 +31,12 @@ docker exec -it shard1 mongosh --port 27018
        // { _id : 1, host : "shard2:27019" }
       ]
     }
-);
-> exit();
-
-docker exec -it shard2 mongosh --port 27019
-
-> rs.initiate(
+)
+EOF
+```
+```bash
+docker compose exec -T shard2 mongosh --port 27019 --quiet <<EOF
+rs.initiate(
     {
       _id : "shard2",
       members: [
@@ -46,25 +44,25 @@ docker exec -it shard2 mongosh --port 27019
         { _id : 1, host : "shard2:27019" }
       ]
     }
-  );
-> exit();
+  )
+EOF
 ```
 Инцициализируйте роутер и наполните его тестовыми данными:
 ```bash
-docker exec -it mongos_router mongosh --port 27020
+docker compose exec -T mongos_router mongosh --port 27020 --quiet <<EOF
+sh.addShard( "shard1/shard1:27018")
+sh.addShard( "shard2/shard2:27019")
+sh.enableSharding("somedb")
+sh.shardCollection("somedb.helloDoc", { "name" : "hashed" } )
+EOF
+```
 
-> sh.addShard( "shard1/shard1:27018");
-> sh.addShard( "shard2/shard2:27019");
-
-> sh.enableSharding("somedb");
-> sh.shardCollection("somedb.helloDoc", { "name" : "hashed" } )
-
-> use somedb
-
-> for(var i = 0; i < 1000; i++) db.helloDoc.insert({age:i, name:"ly"+i})
-
-> db.helloDoc.countDocuments()
-> exit();
+```bash
+docker compose exec -T mongos_router mongosh --port 27020 --quiet <<EOF
+use somedb
+for(var i = 0; i < 1000; i++) db.helloDoc.insert({age:i, name:"ly"+i})
+db.helloDoc.countDocuments()
+EOF
 ```
 
 ## Как проверить
