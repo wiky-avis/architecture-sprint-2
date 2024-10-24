@@ -1,0 +1,335 @@
+#name: sharding-repl-cache
+
+services:
+  pymongo_api:
+    container_name: pymongo_api
+    build: 
+      context: api_app
+      dockerfile: Dockerfile
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - configSrv
+      - mongos_router
+      - shard1-a
+      - shard1-b
+      - shard1-c
+      - shard2-a
+      - shard2-b
+      - shard2-c
+      - shard3-a
+      - shard3-b
+      - shard3-c
+      - redis
+    ports:
+      - 8080:8080
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.15
+    environment:
+      MONGODB_URL: "mongodb://mongos_router:27020"
+      MONGODB_DATABASE_NAME: "somedb"
+      REDIS_URL: "redis://redis:6379"
+
+  configSrv:
+    image: mongo:latest
+    container_name: configSrv
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.10
+    volumes:
+      - config-data:/data/db
+    command:
+      [
+        "--configsvr",
+        "--replSet",
+        "config_server",
+        "--bind_ip_all",
+        "--port",
+        "27017"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  mongos_router:
+    image: mongo:latest
+    container_name: mongos_router
+    restart: always
+    ports:
+      - "27020:27020"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.17
+    volumes:
+      - router-data:/data/db
+    command:
+      [
+        "mongos",
+        "--configdb",
+        "config_server/configSrv:27017",
+        "--bind_ip_all",
+        "--port",
+        "27020"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard1-a:
+    image: mongo:latest
+    container_name: shard1-node-a
+    restart: always
+    ports:
+      - "27122:27122"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.9
+    volumes:
+      - shard1-a-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard1",
+        "--bind_ip_all",
+        "--port",
+        "27122"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  shard1-b:
+    image: mongo:latest
+    container_name: shard1-node-b
+    restart: always
+    ports:
+      - "27123:27123"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.5
+    volumes:
+      - shard1-b-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard1",
+        "--bind_ip_all",
+        "--port",
+        "27123"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  shard1-c:
+    image: mongo:latest
+    container_name: shard1-node-c
+    restart: always
+    ports:
+      - "27124:27124"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.6
+    volumes:
+      - shard1-c-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard1",
+        "--bind_ip_all",
+        "--port",
+        "27124"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard2-a:
+    image: mongo:latest
+    container_name: shard2-node-a
+    restart: always
+    ports:
+      - "27125:27125"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.7
+    volumes:
+      - shard2-a-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard2",
+        "--bind_ip_all",
+        "--port",
+        "27125"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  shard2-b:
+    image: mongo:latest
+    container_name: shard2-node-b
+    restart: always
+    ports:
+      - "27126:27126"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.16
+    volumes:
+      - shard2-b-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard2",
+        "--bind_ip_all",
+        "--port",
+        "27126"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  shard2-c:
+    image: mongo:latest
+    container_name: shard2-node-c
+    restart: always
+    ports:
+      - "27127:27127"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.8
+    volumes:
+      - shard2-c-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard2",
+        "--bind_ip_all",
+        "--port",
+        "27127"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard3-a:
+    image: mongo:latest
+    container_name: shard3-node-a
+    restart: always
+    ports:
+      - "27128:27128"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.4
+    volumes:
+      - shard3-a-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard3",
+        "--bind_ip_all",
+        "--port",
+        "27128"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  shard3-b:
+    image: mongo:latest
+    container_name: shard3-node-b
+    restart: always
+    ports:
+      - "27129:27129"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.13
+    volumes:
+      - shard3-b-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard3",
+        "--bind_ip_all",
+        "--port",
+        "27129"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  shard3-c:
+    image: mongo:latest
+    container_name: shard3-node-c
+    restart: always
+    ports:
+      - "27130:27130"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.14
+    volumes:
+      - shard3-c-data:/data/db
+    command:
+      [
+        "--shardsvr",
+        "--replSet",
+        "shard3",
+        "--bind_ip_all",
+        "--port",
+        "27130"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  redis:
+      image: "redis:latest"
+      container_name: redis
+      ports:
+        - "6379"
+      volumes:
+        - redis-data:/data
+        - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+      networks:
+        app-network:
+          ipv4_address: 173.17.0.2
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 173.17.0.0/20
+
+volumes:
+  router-data:
+  config-data:
+  shard1-a-data:
+  shard1-b-data:
+  shard1-c-data:
+  shard2-a-data:
+  shard2-b-data:
+  shard2-c-data:
+  shard3-a-data:
+  shard3-b-data:
+  shard3-c-data:
+  redis-data: {}
