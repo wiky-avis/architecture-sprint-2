@@ -4,7 +4,7 @@
 
 Запуск приложения
 ```shell
-./scripts/mongo-init.sh
+./scripts/mongo-sharding-repl.sh
 ```
 
 ## Как проверить

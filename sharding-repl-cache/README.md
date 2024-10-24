@@ -2,16 +2,9 @@
 
 ## Как запустить
 
-Запускаем mongodb и приложение
-
+Запуск приложения
 ```shell
-docker compose up -d
-```
-
-Заполняем mongodb данными
-
-```shell
-./scripts/mongo-init.sh
+./scripts/sharding-repl-cache.sh
 ```
 
 ## Как проверить
@@ -23,7 +16,6 @@ docker compose up -d
 ### Если вы запускаете проект на предоставленной виртуальной машине
 
 Узнать белый ip виртуальной машины
-
 ```shell
 curl --silent http://ifconfig.me
 ```
@@ -31,5 +23,4 @@ curl --silent http://ifconfig.me
 Откройте в браузере http://<ip виртуальной машины>:8080
 
 ## Доступные эндпоинты
-
 Список доступных эндпоинтов, swagger http://<ip виртуальной машины>:8080/docs
