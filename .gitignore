@@ -1,1 +1,13 @@
 venv
+.idea/
+.vscode/
+.cache/
+*.db
+*.sqlite3
+*.pyc
+*.xml
+._mac/
+.codestyles/
+.inspection/
+*.pyo
+*__pycache__
